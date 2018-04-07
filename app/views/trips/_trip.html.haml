@@ -8,14 +8,15 @@
     .trip-info
       .title
         =l trip.departure_time, format: :short
-        %p= "(le covoit' est sur la route)" if trip.is_before_today?
+        = '>'
+        =l trip.arrival_time, format: :short
+        = '(en ' + display_ddhhmm_from_a_time_duration_in_seconds(trip_duration(trip.departure_date, trip.departure_time, trip.arrival_date, trip.arrival_time)) +')'
+        %p= "(le covoit' est déjà parti !)" if trip.is_before_today?
+        %p= "(le covoit' est sur la route)" if (not trip.is_before_today?) and trip.is_on_the_road?
       .details
         = trip_steps_breadcrumb_with_emphasis(trip, trip.try(:point_a_id), trip.try(:point_b_id))
     .price
-      %p= "#{trip_price(trip, trip.try(:point_a_price), trip.try(:point_b_price))} €"
+      %p= "#{trip.price} €"
       .seats
-        - if trip.seats == 0
-          Complet
-        - else
-          = "#{trip.seats} place#{'s' if trip.seats > 1}"
+        = display_from_integer_to_text_the_number_of_available_seats(trip.seats)
     .clearfix

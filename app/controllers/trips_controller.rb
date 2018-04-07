@@ -13,7 +13,7 @@ class TripsController < ApplicationController
   end
 
   def new
-    @trip = Trip.new(departure_time: Time.parse('12:00'))
+    @trip = Trip.new
     build_points
   end
 
@@ -150,23 +150,18 @@ class TripsController < ApplicationController
   private
 
     def trip_params
-      params.require(:trip).permit(:departure_date,
-                                   :departure_time,
-                                   :price,
-                                   :description,
+      params.require(:trip).permit(:description,
                                    :title,
                                    :name,
                                    :age,
                                    :phone,
                                    :email,
-                                   :seats,
                                    :comfort,
                                    :smoking,
                                    :terms_of_service,
-                                   :total_distance,
-                                   :total_time,
+                                   :minimum_price, 
                                    points_attributes: [
-                                       :id, :kind, :rank, :city, :lon, :lat, :price, :_destroy
+                                       :id, :kind, :rank, :city, :lon, :lat, :price, :departure_time, :departure_date, :departure_date_in_string, :seats, :_destroy
                                    ]
       )
     end
@@ -182,7 +177,7 @@ class TripsController < ApplicationController
     def build_three_step_points
       return nil if @trip.nil?
       three_step_points = []
-      # user this to build n points on a new record
+      # use this to build n points on a new record
       0.times do |i|
         three_step_points << @trip.points.build({ kind: 'Step', rank: (i + 1) })
       end

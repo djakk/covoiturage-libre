@@ -5,6 +5,8 @@ fr:
     attributes:
       point:
         departure_date: Date
+        departure_date_in_string: Date
         departure_time: Heure
         city: Ville
         price: Prix
+        seats: Nombre de places

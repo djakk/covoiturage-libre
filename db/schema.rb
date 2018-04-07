@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171115235603) do
+ActiveRecord::Schema.define(version: 20180407153322) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -111,6 +111,9 @@ ActiveRecord::Schema.define(version: 20171115235603) do
     t.integer  "price"
     t.datetime "created_at",                               null: false
     t.datetime "updated_at",                               null: false
+    t.time     "departure_time"
+    t.integer  "seats"
+    t.date     "departure_date"
     t.index "st_geographyfromtext((((('SRID=4326;POINT('::text || lon) || ' '::text) || lat) || ')'::text))", name: "index_on_points_location", using: :gist
     t.index ["kind"], name: "index_points_on_kind", using: :btree
     t.index ["rank"], name: "index_points_on_rank", using: :btree
@@ -118,14 +121,12 @@ ActiveRecord::Schema.define(version: 20171115235603) do
   end
 
   create_table "trips", force: :cascade do |t|
-    t.date     "departure_date"
     t.time     "departure_time"
     t.integer  "seats"
     t.string   "comfort"
     t.text     "description"
-    t.integer  "price"
     t.string   "title"
-    t.boolean  "smoking",            default: false,     null: false
+    t.boolean  "smoking",                  default: false,     null: false
     t.string   "name"
     t.integer  "age"
     t.string   "email"
@@ -133,19 +134,19 @@ ActiveRecord::Schema.define(version: 20171115235603) do
     t.string   "confirmation_token"
     t.string   "edition_token"
     t.string   "deletion_token"
-    t.string   "state",              default: "pending", null: false
+    t.string   "state",                    default: "pending", null: false
     t.string   "creation_ip"
     t.string   "deletion_ip"
-    t.datetime "created_at",                             null: false
-    t.datetime "updated_at",                             null: false
+    t.datetime "created_at",                                   null: false
+    t.datetime "updated_at",                                   null: false
     t.boolean  "terms_of_service"
     t.float    "total_distance"
     t.float    "total_time"
     t.integer  "user_id"
     t.datetime "last_trip_information_at"
+    t.integer  "minimum_price"
     t.index ["confirmation_token"], name: "index_trips_on_confirmation_token", using: :btree
     t.index ["created_at"], name: "index_trips_on_created_at", using: :btree
-    t.index ["departure_date"], name: "index_trips_on_departure_date", using: :btree
     t.index ["departure_time"], name: "index_trips_on_departure_time", using: :btree
     t.index ["edition_token"], name: "index_trips_on_edition_token", using: :btree
     t.index ["state"], name: "index_trips_on_state", using: :btree

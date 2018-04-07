@@ -108,6 +108,9 @@ fr:
       month: Mois
       second: Seconde
       year: Année
+  duration:
+   prompt:
+     seconds: "ss"
   errors:
     format: "%{attribute} %{message}"
     messages:

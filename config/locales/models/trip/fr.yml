@@ -4,15 +4,12 @@ fr:
       trip: Voyage
     attributes:
       trip:
-        departure_date: Date
-        departure_time: Heure
-        price: Prix
         description: Commentaire
         name: Nom
         age: Âge
         phone: Téléphone
         email: Email
-        seats: Nombre de places
+        minimum_price: Prix minimum
         title: Sexe
         title_M: Homme
         title_F: Femme

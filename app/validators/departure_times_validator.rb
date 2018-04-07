@@ -25,7 +25,7 @@ class DepartureTimesValidator < ActiveModel::Validator
             return false
           end
         sorted_points[1..-1].each do |point|
-          if point["departure_date"] < previous_price
+          if point["price"] < previous_price
             record.errors[:price] << "Les prix des étapes doivent être indiqués dans l\'ordre croissant."
             return false
           end

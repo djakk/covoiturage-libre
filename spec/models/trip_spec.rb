@@ -2,28 +2,12 @@ require 'rails_helper'
 
 describe Trip, type: :model do
 
-  describe "validations" do
-    it "should not accepts decimal price" do
-      trip = Trip.new(price: 1.23)
-      expect(trip).to_not be_valid
-      expect(trip.errors[:price].any?).to be true
-    end
-
-    it "should accepts rounded price" do
-      trip = Trip.new(price: 0)
-      expect(trip.errors[:price].empty?).to be true
-    end
-  end
-
   describe "scopes" do
 
     before(:each) do
       city = City.create!
 
       @trip = Trip.create!(
-        departure_date: Time.zone.today,
-        departure_time: Time.now,
-        price: 12,
         title: 'M',
         name: 'John',
         email: 'yolo@example.com',
@@ -31,10 +15,10 @@ describe Trip, type: :model do
         comfort: 'comfort',
 
         points: [
-          Point.new(kind: 'From', lat: 1.23, lon: 1.24, city: city),
-          Point.new(kind: 'Step', lat: 1.24, lon: 1.25, city: city, rank: 1, price: 4),
-          Point.new(kind: 'Step', lat: 1.25, lon: 1.26, city: city, rank: 2, price: 5),
-          Point.new(kind: 'To', lat: 1.83, lon: 1.84, city: city)
+          Point.new(departure_date: Time.zone.today, departure_time: Time.now, kind: 'From', lat: 1.23, lon: 1.24, city: city),
+          Point.new(departure_date: Time.zone.today, departure_time: Time.now, kind: 'Step', lat: 1.24, lon: 1.25, city: city, rank: 1, price: 4),
+          Point.new(departure_date: Time.zone.today, departure_time: Time.now, kind: 'Step', lat: 1.25, lon: 1.26, city: city, rank: 2, price: 5),
+          Point.new(departure_date: Time.zone.today, departure_time: Time.now, price: 12, kind: 'To', lat: 1.83, lon: 1.84, city: city)
         ]
       )
     end

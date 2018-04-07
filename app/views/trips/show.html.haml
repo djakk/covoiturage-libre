@@ -5,38 +5,61 @@
 
 .page-header
   %h1
-    ="Voyage de #{@trip.point_from.city} à #{@trip.point_to.city} le #{l @trip.departure_date, format: :trip_date}"
+    ="Voyage de #{@trip.point_from.city} à #{@trip.point_to.city} le #{l @trip.point_from.departure_date, format: :trip_date}"
 
 .row
   .col-md-6
     .panel.panel-default
       .panel-body
         .row
-          .col-xs-4
+          .col-xs-2
             Départ
-          .col-xs-8
+          .col-xs-3
             %strong= @trip.point_from.city
+          .col-xs-5
+            à
+            %strong=l @trip.point_from.departure_time, format: :short
+            =l @trip.point_from.departure_date, format: :trip_date_without_the_year
         - @trip.step_points.each do |point|
           .row
-            .col-xs-4
+            .col-xs-2
               Étape
-            .col-xs-4
+            .col-xs-3
               %strong= point.city
-            .col-xs-4
-              .small_price= number_to_currency point.price
+            .col-xs-5
+              à
+              %strong=l point.departure_time, format: :short
+              =l point.departure_date, format: :trip_date_without_the_year
         .row
-          .col-xs-4
+          .col-xs-2
             Arrivée
-          .col-xs-4
+          .col-xs-3
             %strong= @trip.point_to.city
-          .col-xs-4
-            .small_price= number_to_currency @trip.price
-        %hr
-        .row
-          .col-xs-4
-            Heure de départ
-          .col-xs-8
-            %strong=l @trip.departure_time, format: :short
+          .col-xs-5
+            à
+            %strong=l @trip.point_to.departure_time, format: :short
+            =l @trip.point_to.departure_date, format: :trip_date_without_the_year
+        -# @trip.points.combination(2) do |a_start_point, a_end_point|
+        - for a_start_point_in_index in 0..(@trip.points.length() -1)
+          - a_start_point = @trip.points[a_start_point_in_index]
+          %hr
+          - for a_end_point_in_index in (a_start_point_in_index +1).. (@trip.points.length() -1)
+            - a_end_point = @trip.points[a_end_point_in_index]
+            .row
+              .col-xs-5
+                = a_start_point.city
+                = '->'
+                = a_end_point.city
+              - if @trip.get_the_minimum_price_with_zero_instead_of_nil <= @trip.calculate_the_price_between_two_points_in_index(a_start_point_in_index, a_end_point_in_index)
+                .col-xs-2
+                  .small_price= number_to_currency @trip.calculate_the_price_between_two_points_in_index(a_start_point_in_index, a_end_point_in_index), precision: 0
+                .col-xs-3
+                  = 'en ' + display_ddhhmm_from_a_time_duration_in_seconds(trip_duration(a_start_point.departure_date, a_start_point.departure_time, a_end_point.departure_date, a_end_point.departure_time))
+                .col-xs-2
+                  %strong= display_from_integer_to_text_the_number_of_available_seats(@trip.calculate_the_available_seats_between_two_points_in_index(a_start_point_in_index, a_end_point_in_index))
+              - else
+                .col-xs-7
+                  = 'Non disponible pour le moment, le conducteur a fixé un prix minimum'
         .row
           .col-xs-4
             =t Trip.human_attribute_name(:comfort)
@@ -47,18 +70,11 @@
             Fumeur
           .col-xs-8
             =t :"activerecord.attributes.trip.smoking_#{@trip.smoking}"
-        .row
-          .col-xs-4
-            Estimations
-          .col-xs-8
-            %strong
-              = distance_of_time_in_words(@trip.total_time) if @trip.total_time.present?
-              = "- #{(@trip.total_distance / 1000).round} km" if @trip.total_distance.present?
 
     .panel.panel-default
       .panel-heading
         %h3.panel-title
-          %strong Étapes :
+          %strong Itinéraire :
           = trip_steps_breadcrumb(@trip)
       .panel-body
         #route-wrapper

@@ -18,49 +18,51 @@ class SearchController < ApplicationController
         the_trips_around_the_requested_day = Trip
                    .unscoped
                    .includes(:points)
-                   .where('departure_date >= ?', the_first_date)
-                   .where('departure_date <= ?', the_last_date)
+                   .where('point_a.departure_date >= ?', the_first_date)
+                   .where('point_a.departure_date <= ?', the_last_date)
                    .where(state: 'confirmed')
                    .from_to(
                       @search.from_lon, @search.from_lat,
                       @search.to_lon, @search.to_lat,
                       @search.from_dist, @search.to_dist
                     )
-                   .order(departure_date: :asc)
-                   .order(departure_time: :asc)
+                   .order('point_a.departure_date ASC')
+                   .order('point_a.departure_time ASC')
                    #.page(params[:page]).per(THE_NUMBER_OF_TRIPS_PER_PAGE)
       elsif @search.from_lon.present?
         the_trips_around_the_requested_day = Trip
                    .unscoped
                    .includes(:points)
-                   .where('departure_date >= ?', the_first_date)
-                   .where('departure_date <= ?', the_last_date)
+                   .where('point_a.departure_date >= ?', the_first_date)
+                   .where('point_a.departure_date <= ?', the_last_date)
                    .where(state: 'confirmed')
                    .from_only(
                       @search.from_lon, @search.from_lat,
                       @search.from_dist
                     )
-                   .order(departure_date: :asc)
-                   .order(departure_time: :asc)
+                   .order('point_a.departure_date ASC')
+                   .order('point_a.departure_time ASC')
                    #.page(params[:page]).per(THE_NUMBER_OF_TRIPS_PER_PAGE)
       elsif @search.to_lon.present?
         the_trips_around_the_requested_day = Trip
                    .unscoped
                    .includes(:points)
-                   .where('departure_date >= ?', the_first_date)
-                   .where('departure_date <= ?', the_last_date)
+                   .where('point_b.departure_date >= ?', the_first_date)
+                   .where('point_b.departure_date <= ?', the_last_date)
                    .where(state: 'confirmed')
                    .to_only(
                       @search.to_lon, @search.to_lat,
                       @search.to_dist
                     )
-                   .order(departure_date: :asc)
-                   .order(departure_time: :asc)
+                   .order('point_b.departure_date ASC')
+                   .order('point_b.departure_time ASC')
                    #.page(params[:page]).per(THE_NUMBER_OF_TRIPS_PER_PAGE)
       end
     end
 
+    set_trip_attributes_for_search_purpose(the_trips_around_the_requested_day)
     set__the_previous_trip__departure_date__attribute(the_trips_around_the_requested_day)
+    the_trips_around_the_requested_day = filter_trips_with_the_minimum_price(the_trips_around_the_requested_day)
     define_the_arrays_of_trips_of_the_selected_day(the_trips_around_the_requested_day)
     define_the_arrays_of_days_and_trips_of_the_past_month(the_trips_around_the_requested_day)
     define_the_arrays_of_days_and_trips_around_the_requested_day(the_trips_around_the_requested_day)
@@ -89,6 +91,33 @@ class SearchController < ApplicationController
       #@meta[:description] << " le #{search_params[:date]}"      if search_params[:date].present?
     end
 
+    def set_trip_attributes_for_search_purpose(the_trips_ordered)
+      # departure_date, departure_time, seats, price
+      # /!\ from_point can be empty
+      for a_trip in the_trips_ordered
+        if a_trip.has_attribute?(:point_a_id) and ! a_trip.point_a_id.nil?
+          the_start_point_of_the_search = a_trip.points.find(a_trip.point_a_id)
+        else
+          the_start_point_of_the_search = a_trip.point_from
+        end
+        if a_trip.has_attribute?(:point_b_id) and ! a_trip.point_b_id.nil?
+          the_end_point_of_the_search = a_trip.points.find(a_trip.point_b_id)
+        else
+          the_end_point_of_the_search = a_trip.point_to
+        end
+        a_trip.departure_date = the_start_point_of_the_search.departure_date
+        a_trip.departure_time = the_start_point_of_the_search.departure_time
+        a_trip.arrival_date = the_end_point_of_the_search.departure_date
+        a_trip.arrival_time = the_end_point_of_the_search.departure_time
+        # number of availables seats = minimum on points.seats between the_start_point_of_the_search and the_end_point_of_the_search, without the_start_point_of_the_search
+        the_start_point_of_the_search__in_index = a_trip.points.index { |a_point| a_point == the_start_point_of_the_search }
+        the_end_point_of_the_search__in_index   = a_trip.points.index { |a_point| a_point == the_end_point_of_the_search   }
+        a_trip.seats = a_trip.calculate_the_available_seats_between_two_points_in_index(the_start_point_of_the_search__in_index, the_end_point_of_the_search__in_index)
+        # price : sum on points.price between the_start_point_of_the_search and the_end_point_of_the_search, without the_start_point_of_the_search
+        a_trip.price = a_trip.calculate_the_price_between_two_points_in_index(the_start_point_of_the_search__in_index, the_end_point_of_the_search__in_index)
+      end
+    end
+    
     def set__the_previous_trip__departure_date__attribute(the_trips_ordered)
       # set .the_previous_trip__departure_date attribute
       if the_trips_ordered.length >= 1
@@ -99,6 +128,10 @@ class SearchController < ApplicationController
           a_trip.the_previous_trip__departure_date = a_previous_trip.departure_date
         end
       end
+    end
+    
+    def filter_trips_with_the_minimum_price(the_trips_ordered)
+      the_trips_ordered.select{ |a_trip| a_trip.price >= a_trip.get_the_minimum_price_with_zero_instead_of_nil }
     end
     
     def define_the_arrays_of_trips_of_the_selected_day(the_trips_ordered)
