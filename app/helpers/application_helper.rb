@@ -35,7 +35,7 @@ module ApplicationHelper
   end
 
   def trip_title(trip, separator = '&rarr;')
-    "#{trip_steps_breadcrumb(trip, separator)} le #{l trip.departure_date, format: :trip_date} à #{l trip.departure_time, format: :short}".html_safe
+    "#{trip_steps_breadcrumb(trip, separator)} le #{l trip.point_from.departure_date, format: :trip_date} à #{l trip.point_from.departure_time, format: :short}".html_safe
   end
 
   def trip_steps_breadcrumb_with_emphasis(trip, point_a_id = nil, point_b_id = nil, separator = '&rarr;')
@@ -46,11 +46,6 @@ module ApplicationHelper
         p.city
       end
     end.join(" #{separator} ").html_safe
-  end
-
-  def trip_price(trip, point_a_price, point_b_price)
-    return 0 if trip.price.nil?
-    (point_b_price || trip.price) - (point_a_price || 0)
   end
 
   def admin_page?
@@ -65,4 +60,47 @@ module ApplicationHelper
     /new_from_copy/.match(params[:action])
   end
 
+  def trip_duration(departure_date, departure_time, arrival_date, arrival_time)
+    (arrival_time + 24 *60 *60 *(arrival_date - departure_date).to_i) - departure_time
+  end
+
+  def display_ddhhmm_from_a_time_duration_in_seconds(the_time_duration_in_seconds)
+    the_time_duration_in_minutes = (the_time_duration_in_seconds /60).to_i
+    the_time_duration_in_hours = (the_time_duration_in_minutes /60).to_i
+    the_time_duration_in_days = (the_time_duration_in_hours /24).to_i
+
+    the_minutes_to_display = the_time_duration_in_minutes %60
+    the_hours_to_display = the_time_duration_in_hours %24
+    the_days_to_display = the_time_duration_in_days
+
+    if the_minutes_to_display > 0 or (the_time_duration_in_seconds < 60)
+      the_minutes_in_text = the_minutes_to_display.to_s + "min"
+    else
+      the_minutes_in_text = ""
+    end
+    if the_hours_to_display > 0
+      the_hours_in_text = the_hours_to_display.to_s + "h"
+    else
+      the_hours_in_text = ""
+    end
+    if the_days_to_display > 0
+      the_days_in_text = the_days_to_display.to_s + "j"
+    else
+      the_days_in_text = ""
+    end
+    
+    (the_days_in_text + " " + the_hours_in_text + " " + the_minutes_in_text).strip
+  end
+  
+  def display_from_integer_to_text_the_number_of_available_seats(the_available_seats_in_integer)
+    if the_available_seats_in_integer > 0
+      the_number_of_available_seats_in_text = the_available_seats_in_integer.to_s + " place"
+      if the_available_seats_in_integer > 1
+        the_number_of_available_seats_in_text = the_number_of_available_seats_in_text + "s"
+      end
+    else
+      the_number_of_available_seats_in_text = "Complet"
+    end
+    the_number_of_available_seats_in_text
+  end
 end
